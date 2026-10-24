@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0d0f1a" />
+    <meta name="description" content="«Пни профессора» — физическая аркада в Telegram и MAX." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Пни профессора 🥊</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A5%8A%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://telegram.org" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
+    <link rel="stylesheet" href="./host.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <a id="returnLibrary" class="library-return" href="/#games">← Игротека</a>
+      <button id="saveStatus" class="save-status" hidden type="button" aria-live="polite"></button>
+      <canvas id="game" aria-label="Игровое поле"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <!-- ── HUD ─────────────────────────────────────────────────────────── -->
+      <header class="hud">
+        <div class="hud-left">
+          <div class="avatar" id="hudAvatar">👨‍🏫</div>
+          <div class="name-block">
+            <strong id="hudName" data-i18n="professor">Профессор</strong>
+            <span id="hudRound" class="muted">Round 1</span>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="coin-pill" id="coinPill" role="status" aria-live="polite">
+            <span class="coin-icon">🪙</span><span id="coinCount">0</span>
+          </div>
+          <button class="icon-btn" id="btnSettings" aria-label="Настройки">⚙️</button>
+        </div>
+      </header>
+
+      <div class="hp-block">
+        <div class="hp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+          <div class="hp-fill" id="hpFill"></div>
+          <div class="hp-shine" aria-hidden="true"></div>
+          <span class="hp-text" id="hpText">1000 / 1000</span>
+        </div>
+        <div class="hp-meta">
+          <span id="weaponLabel" class="weapon-label">👟 Пинок</span>
+          <span id="comboBadge" class="combo-badge">СЕРИЯ <b>×0</b></span>
+        </div>
+      </div>
+
+      <div class="rage-banner" id="rageBanner" hidden><span>🔥 РЕЖИМ ЯРОСТИ 🔥</span></div>
+
+      <div class="stage-hint" id="stageHint" data-i18n="hint">Tap the Professor to start the lesson</div>
+
+      <!-- ── Weapon dock ─────────────────────────────────────────────────── -->
+      <nav class="dock-wrap" aria-label="Оружие">
+        <div class="dock" id="dock"></div>
+      </nav>
+
+      <div class="dock-actions">
+        <button class="action-btn" id="btnStudio">
+          <span class="ab-icon">🎨</span><span data-i18n="studio">Studio</span>
+        </button>
+        <button class="action-btn" id="btnShop">
+          <span class="ab-icon">🛒</span><span data-i18n="shop">Shop</span>
+          <i class="dot" id="shopDot" hidden></i>
+        </button>
+        <button class="action-btn" id="btnBoard">
+          <span class="ab-icon">🏆</span><span data-i18n="rank">Рейтинг</span>
+        </button>
+      </div>
+
+      <!-- ── Overlays ────────────────────────────────────────────────────── -->
+      <div class="modal-root" id="modalRoot" hidden>
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <section class="modal" id="modal" role="dialog" aria-modal="true">
+          <header class="modal-head">
+            <h2 id="modalTitle">Заголовок</h2>
+            <button class="icon-btn close" id="modalClose" aria-label="Закрыть">✕</button>
+          </header>
+          <div class="modal-body" id="modalBody"></div>
+        </section>
+      </div>
+
+      <div class="toast-root" id="toastRoot" aria-live="polite"></div>
+
+      <!-- ── Splash / loader ─────────────────────────────────────────────── -->
+      <div class="splash" id="splash">
+        <div class="splash-inner">
+          <div class="splash-logo">🥊</div>
+          <h1>Пни <span>профессора</span></h1>
+          <p class="tagline" data-i18n="tagline">Урок начинается.</p>
+          <div class="loader"><i></i></div>
+          <small id="splashHint">Загружаем лабораторию…</small>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
