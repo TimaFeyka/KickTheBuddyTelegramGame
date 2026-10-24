@@ -86,7 +86,6 @@ async function boot() {
   bestSeen = store.state.stats.bestRound;
   updateCoins(true);
   game.start();
-  installHostNavigation();
 
   // splash out
   setTimeout(() => {
@@ -457,7 +456,7 @@ async function submitScore(result) {
 }
 
 function installHostNavigation() {
-  const leave=async()=>{cancelRecording();game.pause();store.save();await store.flush();game.stop();audio.stopMusic();closeApp();};
+  const leave=async()=>{cancelRecording();if(game){game.pause();store.save();await store.flush();game.stop();audio.stopMusic();}closeApp();};
   const back=()=>{if(modalOpen()){closeModal();return;}leave();};
   document.getElementById('returnLibrary')?.addEventListener('click',event=>{event.preventDefault();back();});
   window.addEventListener('message',event=>{
@@ -470,12 +469,13 @@ function installHostNavigation() {
     const status=event.detail.status;
     node.textContent=status==='saved'?'':status==='conflict'?'Игра открыта на другом устройстве. Обновите страницу, чтобы загрузить сохранение.':'Нет связи. Прогресс сохранён на этом устройстве.';
     node.hidden=status==='saved';
-    if(status==='conflict'){game.pause();node.onclick=()=>location.reload();}
+    if(status==='conflict'){game?.pause();node.onclick=()=>location.reload();}
   });
 }
 
 /* ── go ─────────────────────────────────────────────────────────────────── */
 
+installHostNavigation();
 boot().catch((error) => {
   console.error("[boot]", error);
   if (dom.splashHint) dom.splashHint.textContent = error?.status===401||error?.status===403 ? "Откройте Мироздание через бота Telegram или MAX и проверьте подписку. Нажмите, чтобы повторить." : "Не удалось загрузить игру. Нажмите, чтобы повторить.";

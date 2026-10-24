@@ -71,7 +71,7 @@ export class Store {
     if (local?.save?.customAssets) this.state.customAssets=deepMerge(defaults().customAssets,local.save.customAssets);
     // Resume an offline write only if no newer server version has appeared.
     if(local?.dirty && local.revision===remote.revision) {
-      this.state=deepMerge(defaults(),local.save);this.dirty=true;this.save();
+      this.state=deepMerge(defaults(),local.save);this.isFresh=false;this.dirty=true;this.save();
     }
     this.persist();
     window.addEventListener('online',()=>this.flush());

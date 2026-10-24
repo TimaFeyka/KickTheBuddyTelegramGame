@@ -1,4 +1,6 @@
 import { DomainError } from './repository.mjs';
+import { profileSelect } from './profile.mjs';
+import { SUBSCRIBER_LIMITS } from './subscriber-contract.mjs';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const WEAPONS=new Set(['kick','punch','slap','glove','flipflop','ruler','fish','bat','pan','hammer','taser','cactus','saw','extinguisher','guitar','bomb','rocket','anvil']);
@@ -42,9 +44,9 @@ export function kickBuddyService(db,{allowDemo=false,clock=()=>Date.now()}={}){
   if(!user?.id||typeof user.id!=='string')throw new DomainError('auth_required',401);
   if(user.kind==='demo'&&allowDemo)return {id:user.id,name:'Локальный профиль',platform:'demo'};
   if(user.kind!=='messenger')throw new DomainError('auth_required',401);
-  const row=await stmt("SELECT i.platform,COALESCE(NULLIF(p.preferred_name,''),NULLIF(p.display_name,''),'Подписчик Мироздания') AS name FROM messenger_identities i LEFT JOIN messenger_profiles p ON p.user_id=i.user_id WHERE i.user_id=? AND i.platform IN ('telegram','max')",user.id).first();
-  if(!row)throw new DomainError('auth_required',401);
-  return {id:user.id,name:row.name,platform:row.platform};
+  const row=await stmt(profileSelect,user.id).first();
+  if(!row||row.kind!=='messenger'||!['telegram','max'].includes(row.platform))throw new DomainError('auth_required',401);
+  return {id:user.id,name:row.displayName||'Подписчик Мироздания',platform:row.platform};
  }
  const priorScore=async(userId,requestId)=>stmt('SELECT damage,combo,kos FROM kick_buddy_scores WHERE user_id=? AND request_id=?',userId,requestId).first();
  async function current(user){const player=await identity(user),row=await stmt('SELECT save_json,revision FROM kick_buddy_saves WHERE user_id=?',player.id).first();return {player,save:row?JSON.parse(row.save_json):null,revision:row?.revision??0};}
@@ -85,8 +87,17 @@ export function kickBuddyService(db,{allowDemo=false,clock=()=>Date.now()}={}){
    const since=clock()-7*24*60*60*1000;
    const filter=period==='week'?'AND s.created_at>=?':'';
    const args=period==='week'?[since]:[];
-   const rows=await stmt(`SELECT s.user_id,COALESCE(NULLIF(p.preferred_name,''),NULLIF(p.display_name,''),'Подписчик Мироздания') AS name,SUM(s.damage) AS totalDamage,MAX(s.damage) AS bestRound,MAX(s.combo) AS bestCombo FROM kick_buddy_scores s JOIN users u ON u.id=s.user_id AND u.kind='messenger' LEFT JOIN messenger_profiles p ON p.user_id=s.user_id WHERE 1=1 ${filter} GROUP BY s.user_id ORDER BY totalDamage DESC,bestRound DESC,bestCombo DESC,s.user_id LIMIT ${LEADERBOARD_LIMIT}`,...args).all();
-   return {rows:rows.results.map((row,index)=>({place:index+1,name:row.name,bestRound:row.bestRound,bestCombo:row.bestCombo,totalDamage:row.totalDamage,mine:row.user_id===player.id}))};
+   const rows=await stmt(`SELECT s.user_id,SUM(s.damage) AS totalDamage,MAX(s.damage) AS bestRound,MAX(s.combo) AS bestCombo FROM kick_buddy_scores s JOIN users u ON u.id=s.user_id AND u.kind='messenger' WHERE 1=1 ${filter} GROUP BY s.user_id ORDER BY totalDamage DESC,bestRound DESC,bestCombo DESC,s.user_id LIMIT ${LEADERBOARD_LIMIT}`,...args).all();
+   const profiles=new Map();
+   for(let offset=0;offset<rows.results.length;offset+=SUBSCRIBER_LIMITS.queryBatch){
+    const chunk=rows.results.slice(offset,offset+SUBSCRIBER_LIMITS.queryBatch);
+    const profileResults=await db.batch(chunk.map(row=>stmt('SELECT * FROM messenger_profiles WHERE user_id=?',row.user_id)));
+    for(let index=0;index<chunk.length;index++){
+     const profile=profileResults[index]?.results?.[0];
+     profiles.set(chunk[index].user_id,profile?.preferred_name?.trim()||profile?.display_name?.trim()||'Подписчик Мироздания');
+    }
+   }
+   return {rows:rows.results.map((row,index)=>({place:index+1,name:profiles.get(row.user_id)||'Подписчик Мироздания',bestRound:row.bestRound,bestCombo:row.bestCombo,totalDamage:row.totalDamage,mine:row.user_id===player.id}))};
   },
   async stats(user){
    await identity(user);
