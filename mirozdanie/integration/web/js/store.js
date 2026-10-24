@@ -85,11 +85,11 @@ export class Store {
 
   save() {
     this.change++;this.dirty=true;this.persist();
-    if(!this.saveTimer&&!this.blocked)this.saveTimer=setTimeout(()=>{this.saveTimer=null;this.flush();},1000);
+    if(!this.saveTimer&&!this.blocked)this.saveTimer=setTimeout(()=>{this.saveTimer=null;this.flush(false);},5000);
   }
 
-  async flush() {
-    if(this.saving)return this.saving;
+  async flush(drain=true) {
+    if(this.saving){const ok=await this.saving;return ok&&drain&&this.dirty?this.flush(true):ok;}
     if(!this.dirty||this.blocked)return !this.blocked;
     const change=this.change;
     const snapshot=JSON.parse(JSON.stringify(this.state));
@@ -107,7 +107,7 @@ export class Store {
       } finally {this.saving=null;}
     })();
     const ok=await this.saving;
-    if(ok&&this.dirty)return this.flush();
+    if(ok&&this.dirty){if(drain)return this.flush(true);if(!this.saveTimer)this.saveTimer=setTimeout(()=>{this.saveTimer=null;this.flush(false);},5000);}
     return ok;
   }
 

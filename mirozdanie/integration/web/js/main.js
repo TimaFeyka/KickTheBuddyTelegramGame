@@ -457,7 +457,7 @@ async function submitScore(result) {
 }
 
 function installHostNavigation() {
-  const leave=async()=>{cancelRecording();store.save();await store.flush();game.stop();audio.stopMusic();closeApp();};
+  const leave=async()=>{cancelRecording();game.pause();store.save();await store.flush();game.stop();audio.stopMusic();closeApp();};
   const back=()=>{if(modalOpen()){closeModal();return;}leave();};
   document.getElementById('returnLibrary')?.addEventListener('click',event=>{event.preventDefault();back();});
   window.addEventListener('message',event=>{
