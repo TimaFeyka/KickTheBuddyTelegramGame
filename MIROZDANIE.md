@@ -1,12 +1,12 @@
 # «Пни профессора» в Игротеке
 
-Ветка `codex/mirozdanie-integration` содержит экспорт адаптации для существующего Mini App Мироздания. `mirozdanie/integration/web/` накладывается на исходный `web/`; серверный модуль и SQL подключаются в host-проекте. Они не предназначены для отдельного запуска с upstream `npm start`. Пути ниже относятся к каноническому репозиторию `TimaFeyka/mirozdanie`; этот форк сохраняет происхождение и reviewable экспорт.
-
 Источник: [3punch/KickTheBuddyTelegramGame](https://github.com/3punch/KickTheBuddyTelegramGame), commit `2fdfb3a120110dd615237a4c3c66f2320409a292`. Форк: [TimaFeyka/KickTheBuddyTelegramGame](https://github.com/TimaFeyka/KickTheBuddyTelegramGame). Upstream README объявляет MIT; отдельного LICENSE в этой версии нет. Авторство исходной игры сохранено.
 
 Канонические исходники находятся в этом репозитории: неизменённый импорт в `miniapp/kick-buddy/upstream`, изменения клиента в `miniapp/kick-buddy/integration/web`, API в `shared/miniapp/kick-buddy-service.mjs`. `tools/kick-buddy/build.mjs` проверяет SHA-256 импорта и собирает `/kick-buddy/`. `.build` и `dist` служат только результатами сборки и подготовки публикации.
 
 В Игротеке добавлена категория «Аркады», маршрут `#games/kick-buddy` и параметр запуска `game-kick-buddy`. Встроенная страница использует существующую signed-initData авторизацию родительского Mini App, HttpOnly session cookie и тот же допуск по подписке. Raw initData не передаётся в игровые API или ссылки «Поделиться». Telegram использует публичный deep link существующего бота; MAX — `shareContent({text,link})` и публичный deep link существующего бота. Нативный API MAX проверен по https://dev.max.ru/docs/webapps/bridge.
+
+Игра запускается в общем полноэкранном режиме Игротеки: шапка, разделы и мини-плеер скрыты, активное аудио ставится на паузу. Тот же режим используется в Таро и при прохождении тестов. Telegram 8+ получает `requestFullscreen()`; состояние отслеживается через `fullscreenChanged` / `fullscreenFailed`. MAX заполняет доступный WebView; отдельного нативного fullscreen API в его Bridge нет. Стандартный браузерный fullscreen запрашивается только по действию пользователя, если API доступен. Выход восстанавливает оболочку и завершает только fullscreen, открытый этой игрой; уже существующий fullscreen сохраняется. Повторный рендер родительского интерфейса не пересоздаёт iframe.
 
 Оба мессенджера сохраняют состояние через `/api/kick-buddy/state` в существующую DB. Профиль привязан к внутреннему user.id; самостоятельного объединения Telegram/MAX аккаунтов по имени нет. При существующем связывании внутренних профилей используется та же идентичность. Локальный cache разделён по user.id; изображения и записи голоса остаются на устройстве. Выбор пользовательского изображения на другом устройстве без этого файла использует стандартный вид.
 
@@ -26,3 +26,5 @@ KICK_BUDDY_LOCAL_QA=true APP_ENV=development DEMO_MODE=true DB_PATH=/absolute/pa
 ```
 
 Флаг QA разрешён только на loopback в demo и с отдельной БД внутри `qa-reports/kick-buddy/`. Runtime production от этой команды не меняется. Результаты визуальной проверки и статус публикации хранятся в `qa-reports/kick-buddy/` и `docs/provenance/kick-buddy-20261024/`.
+
+Производственный профиль подписчиков может обслуживаться через Supabase bridge. Все обращения к профилям используют уже зарегистрированные `profileSelect`/subscriber statements. Агрегация игровых результатов остаётся в D1 по совместимым строкам `users`; объединять игровые таблицы с `messenger_profiles` одним SQL нельзя. Имена для рейтинга запрашиваются отдельными ограниченными пакетами. Тест должен запускать настоящий `withSubscriberStorage` в режиме `supabase`, оставляя локальную D1 без профилей и идентичностей.
