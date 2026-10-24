@@ -20,7 +20,7 @@
 
 ```sh
 ./tools/with-node npm run build
-./tools/with-node node --test .build/miniapp/tests/kick-buddy-service.test.mjs .build/miniapp/tests/navigation.test.mjs miniapp/kick-buddy-client.test.mjs
+./tools/with-node node --test .build/miniapp/tests/kick-buddy-service.test.mjs .build/miniapp/tests/navigation.test.mjs .build/miniapp/tests/kick-buddy-client.test.mjs
 cd .build/miniapp
 KICK_BUDDY_LOCAL_QA=true APP_ENV=development DEMO_MODE=true DB_PATH=/absolute/path/to/mirozdanie/qa-reports/kick-buddy/demo.sqlite PORT=4188 ../../tools/with-node node server.mjs
 ```
