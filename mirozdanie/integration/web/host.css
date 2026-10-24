@@ -6,3 +6,5 @@
 
 button.switch{font:inherit;color:inherit;text-align:start;width:100%;cursor:pointer}
 button:focus-visible,a:focus-visible{outline:2px solid #ffcc33;outline-offset:2px}
+.dock-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.action-btn{min-width:0}
+@media(max-width:380px){.action-btn{gap:3px;padding:0 3px;font-size:11px;letter-spacing:0}.action-btn .ab-icon{font-size:16px}.dock-actions{gap:6px}}

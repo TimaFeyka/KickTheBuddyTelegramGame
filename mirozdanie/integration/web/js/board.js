@@ -48,7 +48,7 @@ export function buildBoard(ctx) {
           el("div", { class: "pv-text" }, [
             el("b", { text: t("season") }),
             el("span", {
-              text: `${fmt(stats.players)} ${t("players")} · ${fmt(stats.damage)} ${t("damage")} · ${fmt(stats.kos)} K.O.`,
+              text: `${fmt(stats.players)} ${t("players")} · ${fmt(stats.damage)} ${t("damage")} · ${fmt(stats.kos)} ${t("knockouts").toLocaleLowerCase()}`,
             }),
           ]),
         ])
